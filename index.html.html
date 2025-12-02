@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMW Sales Dashboard (2019-2023)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bmw-blue: #1c69d4;
+            --bmw-dark: #0a1628;
+            --bmw-light: #e8f0fe;
+            --accent: #00d4aa;
+            --text-primary: #1a1a2e;
+            --text-secondary: #64748b;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bmw-dark) 0%, #1a3a5c 100%);
+            color: white;
+            padding: 2rem 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(28, 105, 212, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .header-meta {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--bmw-blue);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .kpi-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-card .value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--bmw-dark);
+        }
+
+        .kpi-card .subtext {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Chart Grid */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--bmw-dark);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Insights Section */
+        .insights-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .insights-section h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: var(--bmw-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .insight-item {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        .insight-item h4 {
+            font-size: 0.9rem;
+            color: var(--bmw-blue);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .insight-item p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .insight-item strong {
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .footer span {
+            color: var(--bmw-blue);
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .kpi-card, .chart-card, .insight-item {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .kpi-card:nth-child(1) { animation-delay: 0.1s; }
+        .kpi-card:nth-child(2) { animation-delay: 0.2s; }
+        .kpi-card:nth-child(3) { animation-delay: 0.3s; }
+        .kpi-card:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🚗 BMW Sales Dashboard</h1>
+        <p>Comprehensive Sales Analysis (2019-2023)</p>
+        <div class="header-meta">Analyst: Maram | December 2025 | Data: 5,000 transactions</div>
+    </header>
+
+    <div class="container">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h3>Total Revenue</h3>
+                <div class="value">$376M</div>
+                <div class="subtext">5-year total</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Avg. Transaction</h3>
+                <div class="value">$75,213</div>
+                <div class="subtext">Per sale average</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Total Units Sold</h3>
+                <div class="value">15,000</div>
+                <div class="subtext">Cars sold</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Top Model</h3>
+                <div class="value">BMW Z4</div>
+                <div class="subtext">$17.06M revenue</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>📊 Top 10 Models by Revenue</h3>
+                <div class="chart-container">
+                    <canvas id="modelsChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>🌍 Revenue by Region</h3>
+                <div class="chart-container">
+                    <canvas id="regionChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>📈 Yearly Revenue Trend</h3>
+                <div class="chart-container">
+                    <canvas id="yearlyChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>🏪 Revenue by Sales Channel</h3>
+                <div class="chart-container">
+                    <canvas id="channelChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="insights-section">
+            <h2>💡 Key Business Insights</h2>
+            <div class="insights-grid">
+                <div class="insight-item">
+                    <h4>Top Performer</h4>
+                    <p><strong>BMW Z4</strong> generated the highest revenue at <strong>$17.06M</strong> with 666 units sold. Focus marketing efforts on this model.</p>
+                </div>
+                <div class="insight-item">
+                    <h4>Regional Surprise</h4>
+                    <p><strong>Africa</strong> leads in revenue, while <strong>Europe</strong> underperforms — surprising for a German brand. Investigate European market strategies.</p>
+                </div>
+                <div class="insight-item">
+                    <h4>Channel Dominance</h4>
+                    <p><strong>Wholesale</strong> dominates sales channels. <strong>Online</strong> is still small but represents a growth opportunity for digital transformation.</p>
+                </div>
+                <div class="insight-item">
+                    <h4>COVID Impact</h4>
+                    <p><strong>2020</strong> had the lowest revenue (pandemic effect). <strong>2021</strong> showed strong recovery — demand bounced back quickly.</p>
+                </div>
+                <div class="insight-item">
+                    <h4>Seasonal Pattern</h4>
+                    <p><strong>August</strong> is the peak sales month. <strong>February</strong> is the slowest. Plan promotions for slow months to balance revenue.</p>
+                </div>
+                <div class="insight-item">
+                    <h4>Country Leader</h4>
+                    <p><strong>Mexico</strong> is the #1 country by revenue. <strong>Germany</strong> (home market) is NOT in the top 10 — needs competitive analysis.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        Created by <span>Maram</span> | BMW Sales Analysis Dashboard | December 2025
+    </footer>
+
+    <script>
+        // Color palette
+        const bmwBlue = '#1c69d4';
+        const colors = ['#1c69d4', '#00d4aa', '#ff6b6b', '#feca57', '#5f27cd', '#00cec9', '#fd79a8', '#a29bfe', '#55efc4', '#fdcb6e'];
+
+        // Top 10 Models Chart
+        const modelsCtx = document.getElementById('modelsChart').getContext('2d');
+        new Chart(modelsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['BMW Z4', 'BMW M4', 'BMW X5', 'BMW i4', 'BMW M8', 'BMW X3', 'BMW iX3', 'BMW M2', 'BMW 8 Series', 'BMW X1'],
+                datasets: [{
+                    label: 'Revenue (Millions)',
+                    data: [17.06, 16.8, 16.5, 15.9, 15.7, 15.4, 15.2, 14.9, 14.6, 14.3],
+                    backgroundColor: bmwBlue,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            callback: value => '$' + value + 'M'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Region Pie Chart
+        const regionCtx = document.getElementById('regionChart').getContext('2d');
+        new Chart(regionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Africa', 'Asia', 'North America', 'South America', 'Europe'],
+                datasets: [{
+                    data: [22, 21, 20, 19, 18],
+                    backgroundColor: colors.slice(0, 5),
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+
+        // Yearly Trend Chart
+        const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+        new Chart(yearlyCtx, {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [75, 65, 82, 78, 76],
+                    borderColor: bmwBlue,
+                    backgroundColor: 'rgba(28, 105, 212, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: bmwBlue,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: value => '$' + value + 'M'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Channel Bar Chart
+        const channelCtx = document.getElementById('channelChart').getContext('2d');
+        new Chart(channelCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Wholesale', 'Dealership', 'Online'],
+                datasets: [{
+                    label: 'Revenue (Millions)',
+                    data: [180, 140, 56],
+                    backgroundColor: ['#00d4aa', '#1c69d4', '#ff6b6b'],
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: value => '$' + value + 'M'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
